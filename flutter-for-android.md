@@ -515,6 +515,47 @@ public class MainActivity extends FlutterActivity {
 }
 {% endprettify %}
 
+新版1.12、kotlin写法
+注意：getFlutterView()更换为flutterEngine.dartExecutor.binaryMessenger，onCreate已经不可用了。
+{% prettify kotlin %}
+package com.yourcompany.shared;
+
+
+import android.util.Log
+import androidx.annotation.NonNull;
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugins.GeneratedPluginRegistrant
+
+class MainActivity: FlutterActivity() {
+    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+        GeneratedPluginRegistrant.registerWith(flutterEngine)
+
+
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"app.channel.shared.data").setMethodCallHandler(
+            MethodChannel.MethodCallHandler { call, result ->
+                run {
+                    if (call.method.contentEquals("getParam")) {
+                        var name= call.argument<String>("name")
+                        if(intent!=null){
+                            var uri= intent.data;
+                            var param= uri?.getQueryParameter(name)
+                            result.success(param)
+                            Log.i("app.channel.shared.data",name+":"+param)
+                        }
+                        result.success("")
+                        Log.i("app.channel.shared.data",name+":null")
+                    }
+                }
+            }
+        )
+    }
+
+}
+{% endprettify %}
+
 最后，在Flutter中，您可以在渲染Flutter视图时请求数据。
 <!-- skip -->
 {% prettify dart %}
